@@ -13,8 +13,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.imooc</groupId>
-            <artifactId>imooc-core</artifactId>
+            <groupId>com.learn</groupId>
+            <artifactId>imooc-security-core</artifactId>
             <version>${imooc-core-version}</version>
         </dependency>
         <!--集群环境下的session管理-->
