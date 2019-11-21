@@ -8,17 +8,14 @@
  * <author>          <time>          <version>          <desc>
  * 作者姓名           修改时间           版本号              描述
  */
-package com.imooc.security.core.validate.code;
+package com.imooc.security.core.validate.code.image;
 
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.google.code.kaptcha.util.Config;
 import com.imooc.security.core.properties.SecurityProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import com.imooc.security.core.validate.code.ValidateCodeGenerator;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import javax.servlet.ServletOutputStream;
 import java.awt.image.BufferedImage;
 import java.util.Properties;
 
@@ -30,6 +27,7 @@ import java.util.Properties;
  * @create 2019/11/21
  * @since 1.0.0
  */
+
 public class ImageCodeGenerator implements ValidateCodeGenerator {
 
     private SecurityProperties securityProperties;

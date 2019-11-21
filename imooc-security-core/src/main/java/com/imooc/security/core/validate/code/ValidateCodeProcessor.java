@@ -1,8 +1,8 @@
 /**
  * Copyright (C), 2015-2019, XXX有限公司
- * FileName: ValidateCodeGenerator
+ * FileName: ValidateCodeProcessor
  * Author:   Administrator
- * Date:     2019/11/21 11:05
+ * Date:     2019/11/21 13:28
  * Description:
  * History:
  * <author>          <time>          <version>          <desc>
@@ -10,16 +10,12 @@
  */
 package com.imooc.security.core.validate.code;
 
+
 import org.springframework.web.context.request.ServletWebRequest;
 
-/**
- * 〈一句话功能简述〉<br> 
- * 〈〉
- *
- * @author Administrator
- * @create 2019/11/21
- * @since 1.0.0
- */
-public interface ValidateCodeGenerator<C> {
-    public C generate(ServletWebRequest request);
+public interface ValidateCodeProcessor {
+    String SESSION_KEY_PREFIX = "SESSION_KEY_FOR_CODE";
+
+    void create(ServletWebRequest request) throws Exception;
+
 }

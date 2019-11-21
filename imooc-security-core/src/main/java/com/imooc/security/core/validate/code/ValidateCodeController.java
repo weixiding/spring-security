@@ -10,54 +10,38 @@
  */
 package com.imooc.security.core.validate.code;
 
-import com.google.code.kaptcha.impl.DefaultKaptcha;
-import com.google.code.kaptcha.util.Config;
-import com.imooc.security.core.properties.SecurityProperties;
+import com.imooc.security.core.validate.code.image.ImageCode;
+import com.imooc.security.core.validate.code.sms.SmsCodeSender;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.social.connect.web.HttpSessionSessionStrategy;
 import org.springframework.social.connect.web.SessionStrategy;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Properties;
+import java.util.Map;
 
-/**
- * 〈一句话功能简述〉<br> 
- * 〈〉
- *
- * @author Administrator
- * @create 2019/11/20
- * @since 1.0.0
- */
+
 @RestController
 public class ValidateCodeController {
 
-
-    public static String SESSION_KEY = "SESSION_KEY_IMAGE_CODE";
-
-    private SessionStrategy sessionStrategy = new HttpSessionSessionStrategy();
-
-    //图像验证码的生成器
     @Autowired
-    private ValidateCodeGenerator validateCodeGenerator;
+    private Map<String,ValidateCodeProcessor> validateCodeProcessor;
 
-    @GetMapping("/code/image")
-    public void createCode(HttpServletRequest request,HttpServletResponse response) throws IOException {
-        ImageCode imagecode = validateCodeGenerator.generate(new ServletWebRequest(request));
-        sessionStrategy.setAttribute(new ServletWebRequest(request),SESSION_KEY,imagecode);
-        OutputStream out = response.getOutputStream();
-        // write the data out
-        ImageIO.write(imagecode.getBufferedImage(), "jpg", out);
+
+    @GetMapping("/code/{type}")
+    public void createImageCode(HttpServletRequest request, HttpServletResponse response, @PathVariable("type")String type) throws Exception {
+        validateCodeProcessor.get(type + "CodeProcessor").create(new ServletWebRequest(request,response));
     }
+
 
 }

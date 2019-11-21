@@ -12,16 +12,23 @@ package com.imooc.security.browser;
 
 import com.imooc.security.browser.authentication.ImoocAuthenticationFailureHandler;
 import com.imooc.security.browser.authentication.ImoocAuthenticationSuccessHandler;
+import com.imooc.security.core.authentation.mobile.SmsAuthentationToken;
+import com.imooc.security.core.authentation.mobile.SmsCodeAuthenticationSecurityConfig;
 import com.imooc.security.core.properties.SecurityProperties;
+import com.imooc.security.core.validate.code.SmsValidateCodeFilter;
 import com.imooc.security.core.validate.code.ValidateCodeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -31,11 +38,26 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
     private ImoocAuthenticationFailureHandler imoocAuthenticationFailureHandler;
     @Autowired
     private SecurityProperties securityProperties;
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private UserDetailsService userDetailsService;
+    @Autowired
+    private SmsCodeAuthenticationSecurityConfig smsCodeAuthenticationSecurityConfig;
     @Bean
     public PasswordEncoder passwordEncoder() {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         return bCryptPasswordEncoder;
     }
+
+    @Bean
+    public JdbcTokenRepositoryImpl jdbcTokenRepository() {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+        jdbcTokenRepository.setDataSource(dataSource);
+        return jdbcTokenRepository;
+    }
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         ValidateCodeFilter validateCodeFilter = new ValidateCodeFilter();
@@ -43,19 +65,33 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
         validateCodeFilter.setAuthenticationFailureHandler(imoocAuthenticationFailureHandler);
         validateCodeFilter.afterPropertiesSet();
 
-        http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class)
+
+        //短信验证码的过滤器
+        SmsValidateCodeFilter smsValidateCodeFilter = new SmsValidateCodeFilter();
+        smsValidateCodeFilter.setSecurityProperties(securityProperties);
+        smsValidateCodeFilter.setAuthenticationFailureHandler(imoocAuthenticationFailureHandler);
+        smsValidateCodeFilter.afterPropertiesSet();
+
+        http.addFilterBefore(smsValidateCodeFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin()
                 .loginProcessingUrl("/authentication/form")
                 .loginPage("/authentication/require")
                 .successHandler(imoocAuthenticationSuccessHandler)
+                .and()
+                .rememberMe()
+                .tokenRepository(jdbcTokenRepository())
+                .tokenValiditySeconds(securityProperties.getBrowser().getRememberMeSeconds())
+                .userDetailsService(userDetailsService)
                 //.failureHandler(imoocAuthenticationFailureHandler)
                 .and()
                 .authorizeRequests().antMatchers("/imocc-signIn.html").permitAll()
                 .antMatchers("/authentication/require").permitAll()
                 .antMatchers("/authentication/form").permitAll()
-                .antMatchers("/code/image").permitAll()
+                .antMatchers("/code/*").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .csrf().disable();
+                .csrf().disable()
+                .apply(smsCodeAuthenticationSecurityConfig);
     }
 }

@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * 图形验证码验证的过滤器
  */
-public class ValidateCodeFilter extends OncePerRequestFilter implements InitializingBean {
+public class SmsValidateCodeFilter extends OncePerRequestFilter implements InitializingBean {
     SessionStrategy sessionStrategy = new HttpSessionSessionStrategy();
     private AuthenticationFailureHandler authenticationFailureHandler;
     private SecurityProperties securityProperties;
@@ -64,13 +64,13 @@ public class ValidateCodeFilter extends OncePerRequestFilter implements Initiali
     public void afterPropertiesSet() throws ServletException {
         super.afterPropertiesSet();
         //进行url路径的拆分工作
-        String urlFromProperties = securityProperties.getCode().getImage().getUrl();
+        String urlFromProperties = securityProperties.getCode().getSms().getUrl();
         String[] urls = StringUtils.split(urlFromProperties, ",");
         for (String u : urls) {
             url.add(u);
         }
         //添加我们必须拦截的路径
-        url.add("/authentication/form");
+        url.add("/authentication/mobile");
     }
 
     @Override
@@ -95,8 +95,8 @@ public class ValidateCodeFilter extends OncePerRequestFilter implements Initiali
     //图形验证码的校验功能
     private void validate(ServletWebRequest servletWebRequest) throws ServletRequestBindingException {
 
-        ImageCode codeInSession = (ImageCode) sessionStrategy.getAttribute(servletWebRequest, "SESSION_KEY");
-        String imageCode = ServletRequestUtils.getStringParameter(servletWebRequest.getRequest(), "imageCode");
+        ValidateCode codeInSession = (ValidateCode) sessionStrategy.getAttribute(servletWebRequest, ValidateCodeProcessor.SESSION_KEY_PREFIX + "SMS");
+        String imageCode = ServletRequestUtils.getStringParameter(servletWebRequest.getRequest(), "smsCode");
         if(StringUtils.isBlank(imageCode)) {
             throw new ValidateCodeExecption("验证码不能为空");
         }
@@ -112,7 +112,7 @@ public class ValidateCodeFilter extends OncePerRequestFilter implements Initiali
         if(!StringUtils.endsWithIgnoreCase(codeInSession.getCode(),imageCode)) {
             throw new ValidateCodeExecption("验证码不匹配");
         }
-        sessionStrategy.removeAttribute(servletWebRequest, "SESSION_KEY");
+        sessionStrategy.removeAttribute(servletWebRequest, ValidateCodeProcessor.SESSION_KEY_PREFIX + "SMS");
 
     }
 }
