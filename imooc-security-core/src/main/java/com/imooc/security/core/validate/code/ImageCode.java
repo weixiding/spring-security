@@ -10,6 +10,7 @@
  */
 package com.imooc.security.core.validate.code;
 
+import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 
 /**
@@ -23,14 +24,18 @@ import java.time.LocalDateTime;
 public class ImageCode {
     private String code;
     private LocalDateTime expireTime;
+    private BufferedImage bufferedImage;
 
-    public ImageCode(String code, LocalDateTime expireTime) {
+
+    public ImageCode(String code,BufferedImage bufferedImage,LocalDateTime expireTime) {
         this.code = code;
+        this.bufferedImage = bufferedImage;
         this.expireTime = expireTime;
     }
 
-    public ImageCode(String code, int expireIn) {
+    public ImageCode(String code,BufferedImage bufferedImage, int expireIn) {
         this.code = code;
+        this.bufferedImage = bufferedImage;
         this.expireTime =  LocalDateTime.now().plusSeconds(expireIn);
     }
 
@@ -48,5 +53,13 @@ public class ImageCode {
 
     public void setExpireTime(LocalDateTime expireTime) {
         this.expireTime = expireTime;
+    }
+
+    public BufferedImage getBufferedImage() {
+        return bufferedImage;
+    }
+
+    public void setBufferedImage(BufferedImage bufferedImage) {
+        this.bufferedImage = bufferedImage;
     }
 }
