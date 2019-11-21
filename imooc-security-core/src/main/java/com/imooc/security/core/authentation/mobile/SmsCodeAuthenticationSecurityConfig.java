@@ -11,6 +11,7 @@
 package com.imooc.security.core.authentation.mobile;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.SecurityBuilder;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
@@ -24,8 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.stereotype.Component;
 
 /**
- * 〈一句话功能简述〉<br> 
- * 〈〉
+ * 短信登录认证,该功能app端和web端都需要
  *
  * @author Administrator
  * @create 2019/11/21
@@ -41,6 +41,7 @@ public class SmsCodeAuthenticationSecurityConfig extends SecurityConfigurerAdapt
     private UserDetailsService userDetailsService;
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
         SmsCodeAuthentationFilter smsCodeAuthentationFilter = new SmsCodeAuthentationFilter();
         smsCodeAuthentationFilter.setAuthenticationManager(http.getSharedObject(AuthenticationManager.class));
         smsCodeAuthentationFilter.setAuthenticationFailureHandler(authenticationFailureHandler);

@@ -27,8 +27,8 @@ import org.springframework.web.context.request.ServletWebRequest;
  * @create 2019/11/21
  * @since 1.0.0
  */
-@Component("smsCodeProcessor")
-public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode> {
+@Component
+public class SmsValidateCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode> {
     @Autowired
     private SmsCodeSender smsCodeSender;
     @Override
@@ -37,4 +37,6 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
         String moblie = ServletRequestUtils.getRequiredStringParameter(request.getRequest(), "mobile");
         smsCodeSender.send(moblie,validateCode.getCode());
     }
+
+
 }

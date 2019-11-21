@@ -11,11 +11,14 @@
 package com.imooc.security.core.validate.code;
 
 
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.context.request.ServletWebRequest;
 
 public interface ValidateCodeProcessor {
-    String SESSION_KEY_PREFIX = "SESSION_KEY_FOR_CODE";
 
     void create(ServletWebRequest request) throws Exception;
+    //验证功能
+    void validate(ServletWebRequest request) throws ServletRequestBindingException;
+
 
 }

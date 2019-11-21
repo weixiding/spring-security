@@ -28,7 +28,7 @@ import java.util.Properties;
  * @since 1.0.0
  */
 
-public class ImageCodeGenerator implements ValidateCodeGenerator {
+public class ImageValidateCodeGenerator implements ValidateCodeGenerator {
 
     private SecurityProperties securityProperties;
 

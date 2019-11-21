@@ -10,14 +10,17 @@
  */
 package com.imooc.security.core.validate.code;
 
+import com.imooc.security.core.properties.SecurityConstants;
 import com.imooc.security.core.properties.SecurityProperties;
 import com.imooc.security.core.validate.code.image.ImageCode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.social.connect.web.HttpSessionSessionStrategy;
 import org.springframework.social.connect.web.SessionStrategy;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.ServletRequestUtils;
@@ -29,90 +32,83 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * 图形验证码验证的过滤器
+ * 验证码验证逻辑的顶层抽象
  */
+@Component
 public class ValidateCodeFilter extends OncePerRequestFilter implements InitializingBean {
     SessionStrategy sessionStrategy = new HttpSessionSessionStrategy();
+    @Autowired
+    private ValidateCodeProcessorHolder validateCodeProcessorHolder;
+    @Autowired
     private AuthenticationFailureHandler authenticationFailureHandler;
+    @Autowired
     private SecurityProperties securityProperties;
-    private Set<String> url = new HashSet<>();
+
+    private Map<String, ValidateCodeType> urlMap = new HashMap<>();
     private AntPathMatcher antPathMatcher = new AntPathMatcher();
-
-    public AuthenticationFailureHandler getAuthenticationFailureHandler() {
-        return authenticationFailureHandler;
-    }
-
-    public void setAuthenticationFailureHandler(AuthenticationFailureHandler authenticationFailureHandler) {
-        this.authenticationFailureHandler = authenticationFailureHandler;
-    }
-
-    public SecurityProperties getSecurityProperties() {
-        return securityProperties;
-    }
-
-    public void setSecurityProperties(SecurityProperties securityProperties) {
-        this.securityProperties = securityProperties;
-    }
-
-
-
+    /*
+        设置拦截路径，及验证类型
+     */
     @Override
     public void afterPropertiesSet() throws ServletException {
         super.afterPropertiesSet();
-        //进行url路径的拆分工作
-        String urlFromProperties = securityProperties.getCode().getImage().getUrl();
-        String[] urls = StringUtils.split(urlFromProperties, ",");
-        for (String u : urls) {
-            url.add(u);
+        //为登录表单添加处理图片验证码处理器映射
+        urlMap.put(SecurityConstants.DEFAULT_LOGIN_PROCESSING_URL_FORM, ValidateCodeType.IMAGE);
+        addUrlToMap(securityProperties.getCode().getImage().getUrl(), ValidateCodeType.IMAGE);
+
+        // 为手机登录地址添加验证码验证的映射
+        urlMap.put(SecurityConstants.DEFAULT_LOGIN_PROCESSING_URL_MOBILE, ValidateCodeType.SMS);
+        addUrlToMap(securityProperties.getCode().getSms().getUrl(), ValidateCodeType.SMS);
+    }
+
+    protected void addUrlToMap(String urlString, ValidateCodeType type) {
+        if (StringUtils.isNotBlank(urlString)) {
+            String[] urls = StringUtils.splitByWholeSeparatorPreserveAllTokens(urlString, ",");
+            for (String url : urls) {
+                urlMap.put(url, type);
+            }
         }
-        //添加我们必须拦截的路径
-        url.add("/authentication/form");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        boolean isFilter = false;
-        for (String s : url) {
-            if(antPathMatcher.match(s,request.getRequestURI())) {
-                isFilter = true;
-            }
-        }
-        if(isFilter) {
-            //进行校验逻辑
+        ValidateCodeType validateCodeType = getValidateCodeType(request);
+        if (validateCodeType != null) {
             try {
-                validate(new ServletWebRequest(request));
-            } catch (AuthenticationException e) {
-                authenticationFailureHandler.onAuthenticationFailure(request, response, e);
+                validateCodeProcessorHolder.findValidateCodeProcessor(validateCodeType)
+                        .validate(new ServletWebRequest(request, response));
+            } catch (ValidateCodeExecption exception) {
+                authenticationFailureHandler.onAuthenticationFailure(request, response, exception);
                 return;
             }
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
-    //图形验证码的校验功能
-    private void validate(ServletWebRequest servletWebRequest) throws ServletRequestBindingException {
 
-        ImageCode codeInSession = (ImageCode) sessionStrategy.getAttribute(servletWebRequest, "SESSION_KEY");
-        String imageCode = ServletRequestUtils.getStringParameter(servletWebRequest.getRequest(), "imageCode");
-        if(StringUtils.isBlank(imageCode)) {
-            throw new ValidateCodeExecption("验证码不能为空");
-        }
-        //验证码不存在
-        if(codeInSession == null) {
-            throw new ValidateCodeExecption("验证码不存在");
-        }
-        //验证码过期
-        if(codeInSession.ifExpire()) {
-            throw new ValidateCodeExecption("验证码过期");
-        }
-        //验证码不匹配
-        if(!StringUtils.endsWithIgnoreCase(codeInSession.getCode(),imageCode)) {
-            throw new ValidateCodeExecption("验证码不匹配");
-        }
-        sessionStrategy.removeAttribute(servletWebRequest, "SESSION_KEY");
 
+    /**
+     * 获取请求地址对于的处理器，如果未找到则标识不需要验证
+     * @param request
+     * @return
+     */
+    private ValidateCodeType getValidateCodeType(HttpServletRequest request) {
+        ValidateCodeType result = null;
+        if (!StringUtils.equalsIgnoreCase(request.getMethod(), "get")) {
+            Set<String> urls = urlMap.keySet();
+            for (String url : urls) {
+                if (antPathMatcher.match(url, request.getRequestURI())) {
+                    result = urlMap.get(url);
+                    break;
+                }
+            }
+        }
+        return result;
     }
+
 }

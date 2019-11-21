@@ -21,7 +21,7 @@ import java.awt.image.BufferedImage;
 import java.util.Properties;
 
 
-public class SmsCodeGenerator implements ValidateCodeGenerator {
+public class SmsValidateCodeGenerator implements ValidateCodeGenerator {
 
     private SecurityProperties securityProperties;
 

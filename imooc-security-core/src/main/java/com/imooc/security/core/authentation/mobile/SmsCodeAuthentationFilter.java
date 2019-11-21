@@ -10,6 +10,7 @@
  */
 package com.imooc.security.core.authentation.mobile;
 
+import com.imooc.security.core.properties.SecurityConstants;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,12 +31,12 @@ import javax.servlet.http.HttpServletResponse;
  * @since 1.0.0
  */
 public class SmsCodeAuthentationFilter extends AbstractAuthenticationProcessingFilter {
-    public static final String IMOOC_FORM_MOBILE_KEY = "mobile";
+    public static final String IMOOC_FORM_MOBILE_KEY = SecurityConstants.DEFAULT_PARAMETER_NAME_MOBILE;
     private String mobileParameter = IMOOC_FORM_MOBILE_KEY;
     private boolean postOnly = true;
 
     public SmsCodeAuthentationFilter() {
-        super(new AntPathRequestMatcher("/authentication/mobile", "POST"));
+        super(new AntPathRequestMatcher(SecurityConstants.DEFAULT_LOGIN_PROCESSING_URL_MOBILE, "POST"));
     }
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {

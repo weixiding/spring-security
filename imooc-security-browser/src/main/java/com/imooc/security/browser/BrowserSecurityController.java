@@ -11,6 +11,7 @@
 package com.imooc.security.browser;
 
 import com.imooc.security.browser.support.SimpleResponse;
+import com.imooc.security.core.properties.SecurityConstants;
 import com.imooc.security.core.properties.SecurityProperties;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class BrowserSecurityController {
      * 功能 当时html请求时 我们返回html登陆页面
      * 当时app时，我们返回相关状态号码
      */
-    @RequestMapping("/authentication/require")
+    @RequestMapping(SecurityConstants.DEFAULT_UNAUTHENTICATION_URL)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public SimpleResponse requireAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException {
         //通过这个工具类我们可以查看上一次跳转路径的缓存点

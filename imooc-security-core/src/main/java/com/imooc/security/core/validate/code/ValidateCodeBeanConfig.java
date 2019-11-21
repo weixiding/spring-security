@@ -11,10 +11,10 @@
 package com.imooc.security.core.validate.code;
 
 import com.imooc.security.core.properties.SecurityProperties;
-import com.imooc.security.core.validate.code.image.ImageCodeGenerator;
+import com.imooc.security.core.validate.code.image.ImageValidateCodeGenerator;
 import com.imooc.security.core.validate.code.sms.DefaultSmsCodeSender;
-import com.imooc.security.core.validate.code.sms.SmsCodeGenerator;
 import com.imooc.security.core.validate.code.sms.SmsCodeSender;
+import com.imooc.security.core.validate.code.sms.SmsValidateCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -27,18 +27,18 @@ public class ValidateCodeBeanConfig {
     private SecurityProperties securityProperties;
 
     //图形验证码的配置
-    @ConditionalOnMissingBean(name = "imageCodeGenerator")
-    @Bean("imageCodeGenerator")
-    public ValidateCodeGenerator imageCodeGenerator() {
-        ImageCodeGenerator imageCodeGenerator = new ImageCodeGenerator();
+    @ConditionalOnMissingBean(name = "imageValidateCodeGenerator")
+    @Bean("imageValidateCodeGenerator")
+    public ValidateCodeGenerator imageValidateCodeGenerator() {
+        ImageValidateCodeGenerator imageCodeGenerator = new ImageValidateCodeGenerator();
         imageCodeGenerator.setSecurityProperties(securityProperties);
         return imageCodeGenerator;
     }
 
-    @ConditionalOnMissingBean(name = "smsCodeGenerator")
-    @Bean("smsCodeGenerator")
-    public ValidateCodeGenerator smsCodeGenerator() {
-        SmsCodeGenerator imageCodeGenerator = new SmsCodeGenerator();
+    @ConditionalOnMissingBean(name = "smsValidateCodeGenerator")
+    @Bean("smsValidateCodeGenerator")
+    public ValidateCodeGenerator smsValidateCodeGenerator() {
+        SmsValidateCodeGenerator imageCodeGenerator = new SmsValidateCodeGenerator();
         imageCodeGenerator.setSecurityProperties(securityProperties);
         return imageCodeGenerator;
     }

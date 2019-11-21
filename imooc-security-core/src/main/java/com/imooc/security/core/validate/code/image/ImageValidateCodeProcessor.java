@@ -26,8 +26,8 @@ import java.io.OutputStream;
  * @create 2019/11/21
  * @since 1.0.0
  */
-@Component("imageCodeProcessor")
-public class ImageCodeProcessor extends AbstractValidateCodeProcessor<ImageCode> {
+@Component
+public class ImageValidateCodeProcessor extends AbstractValidateCodeProcessor<ImageCode> {
 
     @Override
     protected void send(ServletWebRequest request, ImageCode validateCode) throws IOException {
@@ -35,4 +35,6 @@ public class ImageCodeProcessor extends AbstractValidateCodeProcessor<ImageCode>
         // write the data out
         ImageIO.write(validateCode.getBufferedImage(), "jpg", out);
     }
+
+
 }
